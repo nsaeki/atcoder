@@ -4,7 +4,7 @@ source=${1:?}
 verbose=${2:-0}
 
 dir=$(dirname $source)
-task=${source%_*}
+task=$(echo $source | cut -f 1 -d_)
 run_func=run_${source#*.}
 
 run_go() {
