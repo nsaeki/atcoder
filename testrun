@@ -1,0 +1,34 @@
+#!/bin/bash
+
+source=${1:?}
+verbose=${2:-0}
+
+dir=$(dirname $source)
+task=${source%_*}
+run_func=run_${source#*.}
+
+run_go() {
+    go run $1
+}
+
+run_rs() {
+    rustc $1 -o $dir/a.out
+    $dir/a.out
+}
+
+if ls ${task}*.txt > /dev/null 2>&1; then
+    for i in ${task}*.txt; do
+        if [[ $verbose == 0 ]]; then
+            echo -n "$i: "
+        else
+            echo -e "\n========> Testing file ${i}"
+            echo "Input:"
+            cat $i
+            echo -e "\n\nResult:"
+        fi
+        ${run_func} ${source} < $i
+    done
+else
+    echo "No test files are found. Waiting input"
+    cat | ${run_func} ${source}
+fi
