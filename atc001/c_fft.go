@@ -6,6 +6,8 @@ import (
 	"math/cmplx"
 )
 
+// https://en.wikipedia.org/wiki/Cooley–Tukey_FFT_algorithm
+
 func fft(x []complex128) {
 	n := len(x)
 	if n == 1 {
