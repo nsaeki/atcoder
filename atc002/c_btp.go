@@ -34,10 +34,6 @@ func Push(x *Node, v int) *Node {
 	return Merge(x, y)
 }
 
-func Pop(x *Node) {
-	x = Merge(x.left, x.right)
-}
-
 func Second(x *Node) *Node {
 	if x.right == nil {
 		return x.left
@@ -97,38 +93,56 @@ func min(x, y int) int {
 	return y
 }
 
-func HuTucker(x []int) int {
-	n := len(x)
-	hpq := make([]*Node, n)
-	rig := make([]int, n)
+// Hu-Tucker alogorithm for building optimal alphabetic binary search trees
+// https://scholarworks.rit.edu/theses/6484/
+// https://www.cs.rit.edu/~std3246/thesis/node19.html
+
+func HuTucker(w []int) int {
+	n := len(w)
+
+	// Huffman Priority Queues (HPQ)
+	hpq := make([]*Node, n-1)
+
+	// Left indices of Master Priority Queue Node
 	lef := make([]int, n)
+
+	// Right indices of Master Priority Queue (MPQ) Node
+	rig := make([]int, n) // comment
+
+	// Weights of Master Priority Queue Node
 	cst := make([]int, n)
 
-	var pq PriorityQueue
+	// Master Priority Queue (MPQ)
+	// Each element in the queue holds a pair value; sum of weight and HPQ Root index
+	mpq := make(PriorityQueue, n-1)
+
 	for i := 0; i < n-1; i++ {
-		rig[i] = i + 1
 		lef[i] = i - 1
-		cst[i] = x[i] + x[i+1]
-		heap.Push(&pq, &Elem{cst[i], i})
+		rig[i] = i + 1
+		cst[i] = w[i] + w[i+1]
+		mpq[i] = &Elem{cst[i], i}
 	}
+	heap.Init(&mpq)
 
 	ans := 0
 	for k := 0; k < n-1; k++ {
-		e := heap.Pop(&pq).(*Elem)
+
+		// Find the first element in MPQ which can merges two HPQ nodes.
+		e := heap.Pop(&mpq).(*Elem)
 		c := e.cost
 		i := e.index
-
 		for rig[i] == -1 || cst[i] != c {
-			e = heap.Pop(&pq).(*Elem)
+			e = heap.Pop(&mpq).(*Elem)
 			c = e.cost
 			i = e.index
 		}
 
+		// ?
 		var ml, mr bool
-		if x[i]+fst(hpq[i]) == c {
+		if w[i]+fst(hpq[i]) == c {
 			hpq[i] = Merge(hpq[i].left, hpq[i].right)
 			ml = true
-		} else if x[i]+x[rig[i]] == c {
+		} else if w[i]+w[rig[i]] == c {
 			ml = true
 			mr = true
 		} else if fst(hpq[i])+snd(hpq[i]) == c {
@@ -143,10 +157,10 @@ func HuTucker(x []int) int {
 		hpq[i] = Merge(hpq[i], &Node{c, nil, nil})
 
 		if ml {
-			x[i] = math.MaxInt32
+			w[i] = math.MaxInt32
 		}
 		if mr {
-			x[rig[i]] = math.MaxInt32
+			w[rig[i]] = math.MaxInt32
 		}
 
 		if ml && i > 0 {
@@ -165,10 +179,14 @@ func HuTucker(x []int) int {
 			lef[rig[i]] = i
 		}
 
-		cst[i] = x[i] + x[rig[i]]
-		cst[i] = min(cst[i], min(x[i], x[rig[i]])+fst(hpq[i]))
+		// Min of these:
+		// w[i] + w[rig[i]]
+		// min(w[i] , w[rig[i]]) + hqp[i] (if hpq[i] is not null)
+		// hqp[i] + min(hpq[i].left, hpq[i].right) if hpq[i] has at least one child node
+		cst[i] = w[i] + w[rig[i]]
+		cst[i] = min(cst[i], min(w[i], w[rig[i]])+fst(hpq[i]))
 		cst[i] = min(cst[i], fst(hpq[i])+snd(hpq[i]))
-		heap.Push(&pq, &Elem{cst[i], i})
+		heap.Push(&mpq, &Elem{cst[i], i})
 	}
 	return ans
 }
