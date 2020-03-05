@@ -1,34 +1,59 @@
 #!/bin/bash
 
-source=${1:?}
-verbose=${2:-0}
+for OPT in "$@"; do
+    case $OPT in
+        -v) VERBOSE=1;;
+        *)
+            if [[ -z "$SOURCE" ]]; then
+                SOURCE=$OPT
+            elif [[ -z "$TESTCASE" ]]; then
+                TESTCASE=$OPT
+            fi
+            ;;
+    esac
+done
 
-dir=$(dirname $source)
-task=$(echo $source | cut -f 1 -d_)
-run_func=run_${source#*.}
+if [[ -z "$SOURCE" ]]; then
+    echo "Error: specify a source file"
+    echo "Usage: $0 source [testcase_file] [-v]"
+    exit 1
+fi
+
+DIR=$(dirname $SOURCE)
+TASK=$(echo $SOURCE | cut -f 1 -d_)
+RUN_FUNC=run_${SOURCE#*.}
 
 run_go() {
     go run $1
 }
 
 run_rs() {
-    rustc $1 -o $dir/a.out
-    $dir/a.out
+    rustc $1 -o $DIR/a.out
+    $DIR/a.out
 }
 
-if ls ${task}*.txt > /dev/null 2>&1; then
-    for i in ${task}*.txt; do
-        if [[ $verbose == 0 ]]; then
-            echo -n "$i: "
-        else
-            echo -e "\n========> Testing file ${i}"
-            echo "Input:"
-            cat $i
-            echo -e "\n\nResult:"
-        fi
-        ${run_func} ${source} < $i
+run_testcase() {
+    local input=${1:?}
+    if [[ $VERBOSE == 0 ]]; then
+        echo -n "$input: "
+    else
+        echo -e "\n========> Testing file ${input}"
+        echo "Input:"
+        cat $input
+        echo -e "\n\nResult:"
+    fi
+    ${RUN_FUNC} ${SOURCE} < $input
+}
+
+# Main
+
+if [[ -n "$TESTCASE" ]]; then
+    run_testcase $TESTCASE
+elif ls ${TASK}*.txt > /dev/null 2>&1; then
+    for i in ${TASK}*.txt; do
+        run_testcase $i        
     done
 else
     echo "No test files are found. Waiting input"
-    cat | ${run_func} ${source}
+    cat | ${run_func} ${SOURCE}
 fi
