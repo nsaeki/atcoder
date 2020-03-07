@@ -6,8 +6,8 @@ for OPT in "$@"; do
         *)
             if [[ -z "$SOURCE" ]]; then
                 SOURCE=$OPT
-            elif [[ -z "$TESTCASE" ]]; then
-                TESTCASE=$OPT
+            else
+                TESTCASE="$TESTCASE $OPT"
             fi
             ;;
     esac
@@ -23,6 +23,10 @@ DIR=$(dirname $SOURCE)
 TASK=$(echo $SOURCE | cut -f 1 -d_)
 RUN_FUNC=run_${SOURCE#*.}
 
+if [[ -z "$TESTCASE" ]]; then
+    TESTCASE=$(ls $DIR/$TASK*.txt)
+fi
+
 run_go() {
     go run $1
 }
@@ -34,7 +38,7 @@ run_rs() {
 
 run_testcase() {
     local input=${1:?}
-    if [[ $VERBOSE == 0 ]]; then
+    if [[ -z "$VERBOSE" ]]; then
         echo -n "$input: "
     else
         echo -e "\n========> Testing file ${input}"
@@ -48,9 +52,7 @@ run_testcase() {
 # Main
 
 if [[ -n "$TESTCASE" ]]; then
-    run_testcase $TESTCASE
-elif ls ${TASK}*.txt > /dev/null 2>&1; then
-    for i in ${TASK}*.txt; do
+   for i in $TESTCASE; do
         run_testcase $i        
     done
 else
