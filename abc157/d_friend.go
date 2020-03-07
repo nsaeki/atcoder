@@ -6,14 +6,14 @@ import (
 
 type UnionFind struct {
 	root []int
-	rank []int
+	size []int
 }
 
 func NewUnionFind(x int) *UnionFind {
 	u := UnionFind{make([]int, x), make([]int, x)}
 	for i := 0; i < x; i++ {
 		u.root[i] = i
-		u.rank[i] = 0
+		u.size[i] = 1
 	}
 	return &u
 }
@@ -36,14 +36,15 @@ func (u UnionFind) Unite(x, y int) {
 	if x == y {
 		return
 	}
-	if u.rank[x] < u.rank[y] {
-		u.root[x] = y
-	} else {
-		u.root[y] = x
-		if u.rank[x] == u.rank[y] {
-			u.rank[x]++
-		}
+	if u.size[x] > u.size[y] {
+		x, y = y, x
 	}
+	u.size[x] += u.size[y]
+	u.root[y] = x
+}
+
+func (u UnionFind) Size(x int) int {
+	return u.size[u.Root(x)]
 }
 
 func main() {
@@ -72,13 +73,7 @@ func main() {
 	}
 
 	for i := 1; i < n+1; i++ {
-		ret := 0
-		for j := 1; j < n+1; j++ {
-			if u.Same(i, j) {
-				ret++
-			}
-		}
-		ret -= f[i] + b[i] + 1
+		ret := u.Size(i) - f[i] - b[i] - 1
 		fmt.Print(ret, " ")
 	}
 	fmt.Println()
