@@ -1,61 +1,216 @@
-#!/bin/bash
+#!/usr/bin/env ruby
+#
+# Build a source and run for test files.
+#
+# Usage:
+#   testrun source
+#       Searchs test files in current directory which name with prefix same as the source.
+#       If no test file exists, waiting stdin.
+#   testrun source -
+#       Run for stdin.
+#   testrun source testfiles...
+#   testrun source testdir
+#       Test for testdir/in files and check result if testdir/out directory exists.
 
-for OPT in "$@"; do
-    case $OPT in
-        -v) VERBOSE=1;;
-        *)
-            if [[ -z "$SOURCE" ]]; then
-                SOURCE=$OPT
-            else
-                TESTCASE="$TESTCASE $OPT"
-            fi
-            ;;
-    esac
-done
+require "optparse"
+require "open3"
 
-if [[ -z "$SOURCE" ]]; then
-    echo "Error: specify a source file"
-    echo "Usage: $0 source [testcase_file] [-v]"
-    exit 1
-fi
+class TestRunner
+  @@langs = {}
+  @@runners = {}
 
-DIR=$(dirname $SOURCE)
-TASK=$(echo $SOURCE | cut -f 1 -d_)
-RUN_FUNC=run_${SOURCE#*.}
+  class << self
+    def find_for(source)
+      ext = source.split(".")[-1]
+      lang = @@langs[ext]
+      cls = @@runners[lang]
+      raise "Not supported language = #{lang}, ext = #{ext}" unless cls
+      cls
+    end
 
-if [[ -z "$TESTCASE" ]]; then
-    TESTCASE=$(ls $DIR/$TASK*.txt)
-fi
+    def add_runner(lang, cls, *exts)
+      exts.each { |e| @@langs[e] = lang }
+      @@runners[lang] = cls
+    end
+  end
 
-run_go() {
-    go run $1
-}
+  attr_reader :opts
 
-run_rs() {
-    rustc $1 -o $DIR/a.out
-    $DIR/a.out
-}
+  def initialize(opts = {})
+    @opts = opts
+    @testcases = []
+    if block_given?
+      yield self
+    end
+  end
 
-run_testcase() {
-    local input=${1:?}
-    if [[ -z "$VERBOSE" ]]; then
-        echo -n "$input: "
+  def compile
+    raise NotImplementedError.new
+  end
+
+  def get_command_line
+    raise NotImplementedError.new
+  end
+
+  def add_testcase(*cases)
+    @testcases.concat(cases)
+  end
+
+  def test_all
+    @testcases.each { |c| c.run(self) }
+  end
+end
+
+class TestCase
+  def initialize(input_file, expected_file = nil)
+    @input_file = input_file
+    @expected_file = expected_file
+  end
+
+  def run(runner)
+    print_case_info(runner.opts[:v])
+    out = run_command(runner.get_command_line)
+    if @expected_file
+      puts check_result(out) ? green("OK") : red("Wrong")
     else
-        echo -e "\n========> Testing file ${input}"
-        echo "Input:"
-        cat $input
-        echo -e "\n\nResult:"
-    fi
-    ${RUN_FUNC} ${SOURCE} < $input
-}
+      puts out
+    end
+  end
 
-# Main
+  def check_result(out)
+    open(@expected_file) do |f|
+      out.split("\n").each do |line|
+        expected = f.readline.split
+        return false if line.split != expected
+      end
+    end
+    true
+  end
 
-if [[ -n "$TESTCASE" ]]; then
-   for i in $TESTCASE; do
-        run_testcase $i        
-    done
-else
-    echo "No test files are found. Waiting input"
-    cat | ${run_func} ${SOURCE}
-fi
+  private
+
+  def print_case_info(verbose)
+    if verbose
+      puts <<~EOF
+             ========> Testing file #{@input_file}
+             Input:
+             #{File.read(@input_file)}
+             Output:
+           EOF
+    else
+      print "#{@input_file}: "
+    end
+  end
+
+  def run_command(cmdline)
+    out = nil
+    Open3.popen2(*cmdline) do |stdin, stdout, wait_thr|
+      stdin.puts(File.read(@input_file))
+      out = stdout.read
+    end
+    out
+  end
+
+  def green(str)
+    "\e[32m#{str}\e[0m"
+  end
+
+  def red(str)
+    "\e[31m#{str}\e[0m"
+  end
+end
+
+class StdinTestCase < TestCase
+  def initialize; end
+
+  def run(runner)
+    # TODO: Supports only single line input.
+    Open3.popen2(*runner.get_command_line) do |stdin, stdout, wait_thr|
+      stdin.puts(STDIN.gets)
+      puts stdout.read
+    end
+  end
+end
+
+class TestCaseGenerator
+  def self.generate(src, case_files)
+    self.new(src, case_files).generate
+  end
+
+  def initialize(src, case_files)
+    @src, @case_files = src, case_files
+  end
+
+  def generate
+    if @case_files.size == 0
+      @case_files = find_by_source_name
+    end
+  
+    if @case_files.size == 0 || @case_files.first == "-"
+      StdinTestCase.new
+    elsif Dir.exist?(@case_files.first)
+      generate_from_atcoder_dir(@case_files.first)
+    else
+      @case_files.map { |x| TestCase.new(x) }
+    end
+  end
+  
+  private
+
+  def find_by_source_name
+    task_id = @src.split(".", 2).first.split("_", 2).first
+    Dir.glob("#{task_id}*").sort
+      .select { |x| File.file?(x) }
+      .select { |x| x.end_with?(".txt") || x.end_with?(".dat") }
+  end
+
+  def generate_from_atcoder_dir(dir)
+    indir = File.join(dir, "in")
+    outdir = File.join(dir, "out")
+    unless Dir.exist?(indir)
+      STDERR.puts "Couldn't find `in' dir in the directory: #{dir}"
+      exit 1
+    end
+    Dir.new(indir).sort.inject([]) do |s, f|
+      next s if f.start_with?(".")
+      i, o = [indir, outdir].map { |x| File.join(x, f) }
+      s << (File.exist?(o) ? TestCase.new(i, o) : TestCase.new(i))
+    end
+  end
+end
+
+### Language support
+class GoTestRunner < TestRunner
+  add_runner :go, self, "go"
+
+  def binname
+    "./a.out"
+  end
+
+  def compile(src)
+    puts "Building #{src} into #{binname}"
+    ret = system("go", "build", "-o", binname, src)
+    raise "Build failed" unless ret
+  end
+
+  def get_command_line
+    return [binname]
+  end
+end
+
+### main
+options = {}
+OptionParser.new do |opts|
+  opts.on("-v")
+  opts.on("-t")
+end.parse!(into: options)
+
+source = ARGV[0]
+inputs = ARGV[1..]
+testcases = TestCaseGenerator.generate(source, inputs)
+
+TestRunner.find_for(source).new(options) do |r|
+  r.add_testcase(*testcases)
+  r.compile(source)
+  r.test_all
+end
