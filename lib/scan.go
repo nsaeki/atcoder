@@ -4,64 +4,30 @@ import (
 	"strconv"
 )
 
-type AcScanner struct {
-	scanner *bufio.Scanner
-}
-
-func NewScanner() *AcScanner {
+func newScanner() *bufio.Scanner {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(bufio.ScanWords)
-	// MaxScanTokenSize = 64 * 1024
 	// buf := make([]byte, 10000)
 	// scanner.Buffer(buf, 1000000)
-	return &AcScanner{scanner}
+	return scanner
 }
 
-func (s *AcScanner) Scan() bool {
-	if res := s.scanner.Scan(); res {
-		return true
-	}
-	if err := s.scanner.Err(); err != nil {
+func scanInt(s *bufio.Scanner) int {
+	if s.Scan() {
+		t := s.Text()
+		v, err := strconv.Atoi(t)
+		if err == nil {
+			return v
+		}
 		panic(err)
-	}
-	return false
-}
-
-func (s *AcScanner) ScanInt() int {
-	s.Scan()
-	t := s.scanner.Text()
-	v, err := strconv.Atoi(t)
-	if err != nil {
-		return v
 	} else {
-		panic(err)
+		panic(s.Err())
 	}
 }
 
-func (s *AcScanner) ScanInts(n int) []int {
-	ret := make([]int, n)
-	for i := 0; i < n; i++ {
-		x := s.ScanInt()
-		ret[i] = x
+func scanString(s *bufio.Scanner) string {
+	if s.Scan() {
+		return s.Text()
 	}
-	return ret
-}
-
-func (s *AcScanner) ScanString() string {
-	s.Scan()
-	return s.scanner.Text()
-}
-
-func (s *AcScanner) ScanStrings(n int) []string {
-	ret := make([]string, n)
-	for i := 0; i < n; i++ {
-		t := s.ScanString()
-		ret[i] = t
-	}
-	return ret
-}
-
-func (s *AcScanner) ScanBytes() []byte {
-	s.Scan()
-	return []byte(s.scanner.Text())
+	panic(s.Err())
 }
