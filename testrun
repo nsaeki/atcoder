@@ -48,6 +48,10 @@ class TestRunner
     raise NotImplementedError.new
   end
 
+  def must_compile
+    compile unless @compiled
+  end
+
   def get_command_line
     raise NotImplementedError.new
   end
@@ -57,28 +61,32 @@ class TestRunner
   end
 
   def test_all
-    @testcases.each do |c|
-      c.print_info(opts[:v])
-      r = c.run(self)
-      if r.ok == nil
-        out = r.output
-      else
-        out = (r.ok ? green("OK") : red("WA"))
-      end
-
-      elapsed_str = "(#{r.elapsed_time} sec)"
-      if r.elapsed_time > 2
-        elapsed_str = red(elapsed_str)
-      elsif r.elapsed_time > 1
-        elapsed_str = yellow(elapsed_str)
-      end
-
-      out += " " unless out.end_with?("\n")
-      puts out + elapsed_str
-    end
+    must_compile
+    @testcases.each {|c| run_testcase(c)}
   end
 
   private
+
+  def run_testcase(c)
+    c.print_info(opts[:v])
+    r = c.run(self)
+
+    if r.ok == nil
+      out = r.output
+    else
+      out = (r.ok ? green("OK") : red("WA"))
+    end
+
+    elapsed_str = "(#{r.elapsed_time} sec)"
+    if r.elapsed_time > 2
+      elapsed_str = red(elapsed_str)
+    elsif r.elapsed_time > 1
+      elapsed_str = yellow(elapsed_str)
+    end
+
+    out += " " unless out.end_with?("\n")
+    puts out + elapsed_str
+  end
 
   def green(str)
     "\e[32m#{str}\e[0m"
@@ -215,6 +223,7 @@ class GoTestRunner < TestRunner
   end
 
   def compile(src)
+    @compiled = true
     puts "Building #{src} into #{binname}"
     ret = system("go", "build", "-o", binname, src)
     raise "Build failed" unless ret
