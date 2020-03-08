@@ -57,9 +57,43 @@ class TestRunner
   end
 
   def test_all
-    @testcases.each { |c| c.run(self) }
+    @testcases.each do |c|
+      c.print_info(opts[:v])
+      r = c.run(self)
+      if r.ok == nil
+        out = r.output
+      else
+        out = (r.ok ? green("OK") : red("WA"))
+      end
+
+      elapsed_str = "(#{r.elapsed_time} sec)"
+      if r.elapsed_time > 2
+        elapsed_str = red(elapsed_str)
+      elsif r.elapsed_time > 1
+        elapsed_str = yellow(elapsed_str)
+      end
+
+      out += " " unless out.end_with?("\n")
+      puts out + elapsed_str
+    end
+  end
+
+  private
+
+  def green(str)
+    "\e[32m#{str}\e[0m"
+  end
+
+  def red(str)
+    "\e[31m#{str}\e[0m"
+  end
+
+  def yellow(str)
+    "\e[33m#{str}\e[0m"
   end
 end
+
+TestResult = Struct.new(:case, :output, :ok, :elapsed_time)
 
 class TestCase
   def initialize(input_file, expected_file = nil)
@@ -68,16 +102,14 @@ class TestCase
   end
 
   def run(runner)
-    print_case_info(runner.opts[:v])
+    start = Time.now
     out = run_command(runner.get_command_line)
-    if @expected_file
-      puts check_result(out) ? green("OK") : red("Wrong")
-    else
-      puts out
-    end
+    elapsed = Time.now - start
+    ok = @expected_file ? check_output(out) : nil
+    r = TestResult.new(self, out, ok, elapsed)
   end
 
-  def check_result(out)
+  def check_output(out)
     open(@expected_file) do |f|
       out.split("\n").each do |line|
         expected = f.readline.split
@@ -87,9 +119,7 @@ class TestCase
     true
   end
 
-  private
-
-  def print_case_info(verbose)
+  def print_info(verbose)
     if verbose
       puts <<~EOF
              ========> Testing file #{@input_file}
@@ -102,6 +132,8 @@ class TestCase
     end
   end
 
+  private
+
   def run_command(cmdline)
     out = nil
     Open3.popen2(*cmdline) do |stdin, stdout, wait_thr|
@@ -110,25 +142,20 @@ class TestCase
     end
     out
   end
-
-  def green(str)
-    "\e[32m#{str}\e[0m"
-  end
-
-  def red(str)
-    "\e[31m#{str}\e[0m"
-  end
 end
 
 class StdinTestCase < TestCase
   def initialize; end
+  def print_info(verbose); end
 
-  def run(runner)
+  def run_command(cmdline)
     # TODO: Supports only single line input.
-    Open3.popen2(*runner.get_command_line) do |stdin, stdout, wait_thr|
+    out = nil
+    Open3.popen2(*cmdline) do |stdin, stdout, wait_thr|
       stdin.puts(STDIN.gets)
-      puts stdout.read
+      out = stdout.read
     end
+    out
   end
 end
 
@@ -145,7 +172,7 @@ class TestCaseGenerator
     if @case_files.size == 0
       @case_files = find_by_source_name
     end
-  
+
     if @case_files.size == 0 || @case_files.first == "-"
       StdinTestCase.new
     elsif Dir.exist?(@case_files.first)
@@ -154,7 +181,7 @@ class TestCaseGenerator
       @case_files.map { |x| TestCase.new(x) }
     end
   end
-  
+
   private
 
   def find_by_source_name
@@ -202,7 +229,6 @@ end
 options = {}
 OptionParser.new do |opts|
   opts.on("-v")
-  opts.on("-t")
 end.parse!(into: options)
 
 source = ARGV[0]
