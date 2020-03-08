@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
 	var a, b int
@@ -11,15 +13,13 @@ func main() {
 	ymin := b * 100
 	ymax := (b + 1) * 100
 
-	for x := xmin; x < xmax; x++ {
-		if x >= ymin && x < ymax {
-			res := x / 10
-			if x%10 > 0 {
-				res++
-			}
-			fmt.Println(res)
-			return
-		}
+	fmt.Println(xmin, xmax, ymin, ymax)
+
+	if xmin >= ymin && xmin < ymax {
+		fmt.Println((xmin + 9) / 10)
+	} else if ymin >= xmin && ymin < xmax {
+		fmt.Println((ymin + 9) / 10)
+	} else {
+		fmt.Println(-1)
 	}
-	fmt.Println(-1)
 }

@@ -1,60 +1,29 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"sort"
 )
 
-var factorialMemo [400000]int
-
-func factorial(n, m int) int {
-	if n <= 1 {
-		return 1
-	}
-	if factorialMemo[n] != 0 {
-		return factorialMemo[n]
-	}
-	ret := n * factorial(n-1, m) % m
-	factorialMemo[n] = ret
-	return ret
+type node struct {
+	x, d int
+	c    []int
 }
 
-func pow(n, p, m int) int {
-	if p == 0 {
-		return 1
-	}
-	if p%2 == 0 {
-		t := pow(n, p/2, m)
-		return t * t % m
-	}
-	return n * pow(n, p-1, m) % m
-}
-
-func choose(n, k, m int) int {
-	x := factorial(n, m) % m
-	y := factorial(k, m) % m
-	y *= factorial(n-k, m) % m
-	y %= m
-	return x * pow(y, m-2, m) % m
-}
-
-type pair struct {
-	x, d, n int
-	c       []*pair
-}
-
-type robots []*pair
+type robots []*node
 
 func (r robots) Len() int           { return len(r) }
 func (r robots) Less(i, j int) bool { return r[i].x < r[j].x }
 func (r robots) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
 
-func size(r *pair) int {
-	ret := 1
-	for i := 0; i < r.n-1; i++ {
-		ret += size(r.c[i])
+func dfs(i, m int, r []*node) int {
+	res := 1
+	for _, j := range r[i].c {
+		res *= dfs(j, m, r)
+		res %= m
 	}
-	return ret
+	return (res + 1) % m
 }
 
 func main() {
@@ -64,39 +33,37 @@ func main() {
 
 	r := make(robots, n)
 	for i := 0; i < n; i++ {
-		var rx, rd int
-		fmt.Scan(&rx, &rd)
-		r[i] = &pair{rx, rd, 1, []*pair{}}
+		var x, d int
+		fmt.Scan(&x, &d)
+		r[i] = &node{x, d, []int{}}
 	}
-
 	sort.Sort(r)
-	c := make([]int, n)
-	for i := 0; i < n; i++ {
-		c[i]++
-		for j := i + 1; j < n; j++ {
-			if r[i].x+r[i].d > r[j].x {
-				r[i].c = append(r[i].c, r[j])
+
+	l := list.New()
+	for i := n - 1; i >= 0; i-- {
+		e := l.Front()
+		for e != nil {
+			a, _ := e.Value.([]int)
+			x := a[0]
+			j := a[1]
+			if r[i].x+r[i].d > x {
+				r[i].c = append(r[i].c, j)
+				e1 := e
+				e = e1.Next()
+				l.Remove(e1)
+			} else {
+				break
 			}
 		}
+		l.PushFront([]int{r[i].x, i})
 	}
 
-	for i := 0; i < n; i++ {
-		c[i] = size(r[i])
-	}
-	fmt.Println(c)
-
-	res := 0
-	for i := 0; i <= n; i++ {
-		res += choose(n, i, m)
+	res := 1
+	for e := l.Front(); e != nil; e = e.Next() {
+		a, _ := e.Value.([]int)
+		i := a[1]
+		res *= dfs(i, m, r)
 		res %= m
-	}
-
-	fmt.Println(res)
-	for i := 0; i < n; i++ {
-		for j := 0; j <= c[i]; j++ {
-			res -= choose(c[i], j, m)
-			res %= m
-		}
 	}
 
 	fmt.Println(res)
