@@ -1,10 +1,34 @@
 package main
 
 import (
+	"bufio"
 	"container/list"
 	"fmt"
+	"os"
 	"sort"
+	"strconv"
 )
+
+func newScanner() *bufio.Scanner {
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Split(bufio.ScanWords)
+	// buf := make([]byte, 10000)
+	// scanner.Buffer(buf, 1000000)
+	return scanner
+}
+
+func scanInt(s *bufio.Scanner) int {
+	if s.Scan() {
+		t := s.Text()
+		v, err := strconv.Atoi(t)
+		if err == nil {
+			return v
+		}
+		panic(err)
+	} else {
+		panic(s.Err())
+	}
+}
 
 type node struct {
 	x, d int
@@ -27,14 +51,13 @@ func dfs(i, m int, r []*node) int {
 }
 
 func main() {
+	sc := newScanner()
 	const m int = 998244353
-	var n int
-	fmt.Scan(&n)
+	n := scanInt(sc)
 
 	r := make(robots, n)
 	for i := 0; i < n; i++ {
-		var x, d int
-		fmt.Scan(&x, &d)
+		x, d := scanInt(sc), scanInt(sc)
 		r[i] = &node{x, d, []int{}}
 	}
 	sort.Sort(r)
