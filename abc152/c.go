@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
 	"strconv"
 )
 
@@ -29,40 +28,21 @@ func scanInt(s *bufio.Scanner) int {
 	}
 }
 
-func scanString(s *bufio.Scanner) string {
-	if s.Scan() {
-		return s.Text()
-	}
-	panic(s.Err())
-}
-
-type pair struct {
-	x, i int
-}
-type ints []*pair
-
-func (is ints) Len() int           { return len(is) }
-func (is ints) Less(i, j int) bool { return is[i].x < is[j].x }
-func (is ints) Swap(i, j int)      { is[i], is[j] = is[j], is[i] }
-
 func main() {
 	sc := newScanner()
 	n := scanInt(sc)
-	p := make(ints, n)
+	p := make([]int, n)
 
 	for i := 0; i < n; i++ {
-		x := scanInt(sc)
-		p[i] = &pair{x, i}
+		p[i] = scanInt(sc)
 	}
 
-	sort.Sort(p)
-
 	res := 0
-	min := 10000000
-	for i := 0; i < n; i++ {
-		if min > p[i].i {
+	i := 0
+	for j := 0; j < n; j++ {
+		if p[i] >= p[j] {
 			res++
-			min = p[i].i
+			i = j
 		}
 	}
 
