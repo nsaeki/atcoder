@@ -76,6 +76,7 @@ class TestRunner
 
   def print_result(r)
     if r.ok != nil
+      print r.output if opts[:v]
       print (r.ok ? green("OK") : red("WA"))
     else
       print r.output
@@ -124,6 +125,7 @@ class TestCase
   def check_output(out)
     open(@expected_file) do |f|
       out.split("\n").each do |line|
+        return false if f.eof
         expected = f.readline.split
         return false if line.split != expected
       end
@@ -214,6 +216,25 @@ class GoTestRunner < TestRunner
     @compiled = true
     puts "Building #{src} into #{binname}"
     ret = system("go", "build", "-o", binname, src)
+    raise "Build failed" unless ret
+  end
+
+  def get_command_line
+    return [binname]
+  end
+end
+
+class CppTestRunner < TestRunner
+  add_runner :cpp, self, "c++", "cpp", "cc"
+
+  def binname
+    "./a.out"
+  end
+
+  def compile(src)
+    @compiled = true
+    puts "Building #{src} into #{binname}"
+    ret = system("clang++", "-std=c++14", "-o", binname, src)
     raise "Build failed" unless ret
   end
 

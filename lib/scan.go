@@ -1,5 +1,6 @@
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -15,19 +16,18 @@ func newScanner() *bufio.Scanner {
 func scanInt(s *bufio.Scanner) int {
 	if s.Scan() {
 		t := s.Text()
-		v, err := strconv.Atoi(t)
-		if err == nil {
+		if v, err := strconv.Atoi(t); err == nil {
 			return v
 		}
-		panic(err)
-	} else {
-		panic(s.Err())
-	}
-}
-
-func scanString(s *bufio.Scanner) string {
-	if s.Scan() {
-		return s.Text()
+		panic(fmt.Sprintln("Could't scan int from input", t))
 	}
 	panic(s.Err())
+}
+
+func scanInts(s *bufio.Scanner, n int) []int {
+	a := make([]int, n)
+	for i := 0; i < n; i++ {
+		a[i] = scanInt(s)
+	}
+	return a
 }
