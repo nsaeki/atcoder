@@ -14,6 +14,7 @@
 
 require "optparse"
 require "open3"
+require "pty"
 
 class TestRunner
   @@langs = {}
@@ -114,7 +115,7 @@ class TestCase
 
   def run(runner)
     start = Time.now
-    out = run_command(runner.get_command_line)
+    out, st = Open3.capture2e(*runner.get_command_line, stdin_data: File.read(@input_file))
     elapsed = Time.now - start
     ok = @expected_file ? check_output(out) : nil
     TestResult.new(self, out, ok, elapsed)
@@ -142,17 +143,6 @@ class TestCase
       print "#{@input_file}: "
     end
   end
-
-  private
-
-  def run_command(cmdline)
-    out = nil
-    Open3.popen2(*cmdline) do |stdin, stdout, wait_thr|
-      stdin.puts(File.read(@input_file))
-      out = stdout.read
-    end
-    out
-  end
 end
 
 class StdinTestCase < TestCase
@@ -160,12 +150,7 @@ class StdinTestCase < TestCase
   def print_info(verbose); end
 
   def run(runner)
-    # TODO: Supports only single line input.
-    out = nil
-    Open3.popen2(*runner.get_command_line) do |stdin, stdout, wait_thr|
-      stdin.puts(STDIN.gets)
-      out = stdout.read
-    end
+    out = `#{runner.get_command_line.join(' ')}`
     TestResult.new(self, out, nil, nil)
   end
 end
