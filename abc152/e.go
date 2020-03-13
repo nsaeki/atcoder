@@ -26,19 +26,32 @@ func scanInt(s *bufio.Scanner) int {
 	panic(s.Err())
 }
 
-func genPrimes(n int) []int {
-	p := make([]int, n)
-	for i := 2; i < n; i++ {
-		if p[i] == 0 {
-			p[i] = i
+func primes(n int) []int {
+	p := make([]int, n+1)
+	for i := 2; i <= n; i++ {
+		if p[i] != 0 {
+			continue
 		}
-		for j := i * i; j < n; j += i {
+		p[i] = i
+		if i > n/i {
+			continue
+		}
+		for j := i * i; j <= n; j += i {
 			if p[j] == 0 {
 				p[j] = i
 			}
 		}
 	}
 	return p
+}
+
+func factor(n int, p []int) map[int]int {
+	ret := make(map[int]int)
+	for n > 1 {
+		ret[p[n]]++
+		n /= p[n]
+	}
+	return ret
 }
 
 func pow(p, n, m int) int {
@@ -69,16 +82,10 @@ func main() {
 		}
 	}
 
-	p := genPrimes(maxA + 1)
+	p := primes(maxA)
 	f := make(map[int]int)
 	for i := 0; i < n; i++ {
-		fa := make(map[int]int)
-		x := a[i]
-		for x > 1 && p[x] > 0 {
-			fa[p[x]]++
-			x /= p[x]
-		}
-		for k, v := range fa {
+		for k, v := range factor(a[i], p) {
 			if f[k] < v {
 				f[k] = v
 			}
