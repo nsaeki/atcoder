@@ -13,21 +13,23 @@ func newScanner() *bufio.Scanner {
 	return scanner
 }
 
-func scanInt(s *bufio.Scanner) int {
-	if s.Scan() {
-		t := s.Text()
+func scanInt() int {
+	if sc.Scan() {
+		t := sc.Text()
 		if v, err := strconv.Atoi(t); err == nil {
 			return v
 		}
 		panic(fmt.Sprintln("Could't scan int from input", t))
 	}
-	panic(s.Err())
+	panic(sc.Err())
 }
 
-func scanInts(s *bufio.Scanner, n int) []int {
+func scanInts(n int) []int {
 	a := make([]int, n)
 	for i := 0; i < n; i++ {
-		a[i] = scanInt(s)
+		a[i] = scanInt()
 	}
 	return a
 }
+
+var sc *bufio.Scanner = newScanner()
