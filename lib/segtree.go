@@ -1,19 +1,17 @@
 // Segment Trees
-// https://codeforces.com/blog/entry/18051
-
-type SegTree struct {
+type SegmentTree struct {
 	n int
 	d []int
 }
 
-func NewSegTree(n int) *SegTree {
-	s := SegTree{}
+func NewSegmentTree(n int) *SegmentTree {
+	s := SegmentTree{}
 	s.n = n
 	s.d = make([]int, 2*n)
 	return &s
 }
 
-func (s *SegTree) Modify(i, x int) {
+func (s *SegmentTree) Modify(i, x int) {
 	i += s.n
 	s.d[i] = x
 	for ; i > 0; i >>= 1 {
@@ -21,7 +19,7 @@ func (s *SegTree) Modify(i, x int) {
 	}
 }
 
-func (s *SegTree) Query(l, r int) int {
+func (s *SegmentTree) Query(l, r int) int {
 	res := 0
 	l += s.n
 	r += s.n

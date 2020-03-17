@@ -32,4 +32,11 @@ func scanInts(n int) []int {
 	return a
 }
 
-var sc *bufio.Scanner = newScanner()
+func scanString() string {
+	if sc.Scan() {
+		return sc.Text()
+	}
+	panic(sc.Err())
+}
+
+var sc = newScanner()
