@@ -4,7 +4,7 @@
 #
 # Usage:
 #   testrun source
-#       Searchs test files in current directory which name with prefix same as the source.
+#       Searchs test files in current directory and run tests.
 #       If no test file exists, waiting stdin.
 #   testrun source -
 #       Run for stdin.
@@ -32,6 +32,19 @@ class TestRunner
     def add_runner(lang, cls, *exts)
       exts.each { |e| @@langs[e] = lang }
       @@runners[lang] = cls
+    end
+
+    def compile_command(cmd)
+      define_method(:compile) do |src|
+        @compiled = true
+        puts "Building #{src}"
+        ret = system(*cmd, src)
+        raise "Build failed" unless ret
+      end
+    end
+
+    def test_command(cmd)
+      define_method(:get_command_line) { cmd }
     end
   end
 
@@ -207,59 +220,20 @@ end
 ### Language support
 class GoTestRunner < TestRunner
   add_runner :go, self, "go"
-
-  def binname
-    "./a.out"
-  end
-
-  def compile(src)
-    @compiled = true
-    puts "Building #{src} into #{binname}"
-    ret = system("go", "build", "-o", binname, src)
-    raise "Build failed" unless ret
-  end
-
-  def get_command_line
-    return [binname]
-  end
+  compile_command ["go", "build", "-o", "a.out"]
+  test_command ["./a.out"]
 end
 
 class CppTestRunner < TestRunner
   add_runner :cpp, self, "c++", "cpp", "cc"
-
-  def binname
-    "./a.out"
-  end
-
-  def compile(src)
-    @compiled = true
-    puts "Building #{src} into #{binname}"
-    ret = system("clang++", "-std=c++14", "-o", binname, src)
-    raise "Build failed" unless ret
-  end
-
-  def get_command_line
-    return [binname]
-  end
+  compile_command ["clang++", "-std=c++14", "-o", "a.out"]
+  test_command ["./a.out"]
 end
 
 class RustTestRunner < TestRunner
   add_runner :rust, self, "rs"
-
-  def binname
-    "./a.out"
-  end
-
-  def compile(src)
-    @compiled = true
-    puts "Building #{src} into #{binname}"
-    ret = system("rustc", "-o", binname, src)
-    raise "Build failed" unless ret
-  end
-
-  def get_command_line
-    return [binname]
-  end
+  compile_command ["rustc", "-o", "a.out"]
+  test_command ["./a.out"]
 end
 
 ### main
