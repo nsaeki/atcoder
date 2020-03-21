@@ -152,7 +152,7 @@ class StdinTestCase < TestCase
   def print_info(verbose); end
 
   def run(runner)
-    out = `#{runner.get_command_line.join(' ')}`
+    out = `#{runner.get_command_line.join(" ")}`
     TestResult.new(self, out, nil, nil)
   end
 end
@@ -235,6 +235,25 @@ class CppTestRunner < TestRunner
     @compiled = true
     puts "Building #{src} into #{binname}"
     ret = system("clang++", "-std=c++14", "-o", binname, src)
+    raise "Build failed" unless ret
+  end
+
+  def get_command_line
+    return [binname]
+  end
+end
+
+class RustTestRunner < TestRunner
+  add_runner :rust, self, "rs"
+
+  def binname
+    "./a.out"
+  end
+
+  def compile(src)
+    @compiled = true
+    puts "Building #{src} into #{binname}"
+    ret = system("rustc", "-o", binname, src)
     raise "Build failed" unless ret
   end
 
