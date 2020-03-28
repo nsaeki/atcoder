@@ -5,14 +5,6 @@ import "fmt"
 func main() {
 	var x int
 	fmt.Scan(&x)
-	ans := 0
-	for x >= 500 {
-		x -= 500
-		ans += 1000
-	}
-	for x >= 5 {
-		x -= 5
-		ans += 5
-	}
+	ans := x/500*1000 + x%500/5*5
 	fmt.Println(ans)
 }

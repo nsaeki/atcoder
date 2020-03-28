@@ -28,27 +28,16 @@ func scanInts(n int) []int {
 	return a
 }
 
-func scanString() string {
-	if sc.Scan() {
-		return sc.Text()
-	}
-	panic(sc.Err())
-}
-
 var sc = newScanner()
 
 func main() {
 	k, n := scanInt(), scanInt()
 	a := scanInts(n)
 	sort.Ints(a)
-	a = append(a, a[0])
+	a = append(a, a[0]+k)
 	res := k
-	for i := 1; i <= n; i++ {
-		p := a[i-1]
-		if p < a[i] {
-			p += k
-		}
-		x := p - a[i]
+	for i := 0; i < n; i++ {
+		x := k - (a[i+1] - a[i])
 		if res > x {
 			res = x
 		}
