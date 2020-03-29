@@ -1,36 +1,57 @@
-var factorialMemo []int64
+type Combination struct {
+	n int
+	f *Factorial
+}
 
-func factorial(n, m int) int64 {
-	if n <= 1 {
-		return 1
+func NewCombination(n, m int) *Combination {
+	f := NewFactorial(n, m)
+	return &Combination{n, f}
+}
+
+func (c *Combination) Combination(n, k int) int64 {
+	return c.f.F[n] * c.f.Inv[k] % c.f.Mod * c.f.Inv[n-k] % c.f.Mod
+}
+
+func (c *Combination) Permutation(n, k int) int64 {
+	return c.Combination(n+k-1, n-1)
+}
+
+func (c *Combination) Factorial(n int) int64 {
+	return c.f.F[n]
+}
+
+type Factorial struct {
+	n      int
+	Mod    int64
+	F, Inv []int64
+}
+
+func NewFactorial(n, m int) *Factorial {
+	f := Factorial{n, int64(m), nil, nil}
+	f.F = make([]int64, n+1)
+	f.Inv = make([]int64, n+1)
+	f.F[0] = 1
+	for i := 1; i <= n; i++ {
+		f.F[i] = f.F[i-1] * int64(i) % f.Mod
 	}
-	if factorialMemo[n] != 0 {
-		return factorialMemo[n]
+	f.Inv[n] = pow(f.F[n], f.Mod-2, f.Mod)
+	for i := n; i > 0; i-- {
+		f.Inv[i-1] = f.Inv[i] * int64(i) % f.Mod
 	}
-	ret := int64(n) * factorial(n-1, m) % int64(m)
-	factorialMemo[n] = ret
-	return ret
+	return &f
 }
 
-func combination(n, k, m int) int64 {
-	mm := int64(m)
-	x := factorial(n, m) % mm
-	y := factorial(k, m) % mm
-	y = y * factorial(n-k, m) % mm
-	return x * pow(y, m-2, m) % mm
-}
-
-func permutation(n, k, m int) int64 {
-	return combination(n+k-1, n-1, m)
-}
-
-func pow(p, n, m int64) int64 {
+func pow(x, n, m int64) int64 {
 	if n == 0 {
 		return 1
 	}
 	if n&1 == 0 {
-		r := pow(p, n/2, m)
-		return r * r % int64(m)
+		r := pow(x, n/2, m)
+		return r * r % m
 	}
-	return int64(p) * pow(p, n-1, m) % int64(m)
+	return x * pow(x, n-1, m) % m
+}
+
+func div(x, n, m int64) int64 {
+	return x * pow(n, m-2, m) % m
 }

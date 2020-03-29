@@ -1,5 +1,10 @@
 // Sieve of Eratosthenes
-func primes(n int) []int {
+type Sieve struct {
+	n int
+	p []int
+}
+
+func NewSieve(n int) *Sieve {
 	p := make([]int, n+1)
 	for i := 2; i <= n; i++ {
 		if p[i] != 0 {
@@ -15,14 +20,24 @@ func primes(n int) []int {
 			}
 		}
 	}
-	return p
+	return &Sieve{n, p}
 }
 
-func factor(n int, p []int) map[int]int {
+func (s *Sieve) Primes() []int {
+	ret := make([]int, 0, s.n)
+	for i := 0; i < s.n; i++ {
+		if s.p[i] == i {
+			ret = append(ret, i)
+		}
+	}
+	return ret
+}
+
+func (s *Sieve) factors(n int) map[int]int {
 	ret := make(map[int]int)
 	for n > 1 {
-		ret[p[n]]++
-		n /= p[n]
+		ret[s.p[n]]++
+		n /= s.p[n]
 	}
 	return ret
 }
