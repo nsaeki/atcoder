@@ -4,10 +4,13 @@ type BIT struct {
 	d []int
 }
 
-func NewBIT(n int) *BIT {
+func NewBIT(n int, a ...int) *BIT {
 	b := BIT{}
 	b.n = n
 	b.d = make([]int, n+1)
+	for i := 0; i < len(a); i++ {
+		b.add(i, a[i])
+	}
 	return &b
 }
 
