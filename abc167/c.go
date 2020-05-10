@@ -1,86 +1,51 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strconv"
 )
 
-func newScanner() *bufio.Scanner {
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Split(bufio.ScanWords)
-	return scanner
-}
-
-func scanInt() int {
-	sc.Scan()
-	v, _ := strconv.Atoi(sc.Text())
-	return v
-}
-
-func scanInts(n int) []int {
-	a := make([]int, n)
-	for i := 0; i < n; i++ {
-		a[i] = scanInt()
-	}
-	return a
-}
-
-func scanString() string {
-	if sc.Scan() {
-		return sc.Text()
-	}
-	panic(sc.Err())
-}
-
-var sc = newScanner()
-
-var n, m, x, inf int
-var a [][]int
-var c, d []int
-
-func dfs(i int) int {
-	if i == n {
-		for j := 0; j < m; j++ {
-			if d[j] < x {
-				return inf
-			}
-		}
-		return 0
-	}
-
-	r1 := dfs(i + 1)
-	for j := 0; j < m; j++ {
-		d[j] += a[i][j]
-	}
-	r2 := dfs(i+1) + c[i]
-	for j := 0; j < m; j++ {
-		d[j] -= a[i][j]
-	}
-	if r1 < r2 {
-		return r1
-	} else {
-		return r2
-	}
-}
-
 func main() {
-	n, m, x = scanInt(), scanInt(), scanInt()
-	a = make([][]int, n)
-	c = make([]int, n)
+	var n, m, x, inf int
+	fmt.Scan(&n, &m, &x)
+	a := make([][]int, n)
+	c := make([]int, n)
 
 	for i := 0; i < n; i++ {
-		c[i] = scanInt()
-		a[i] = scanInts(m)
+		fmt.Scan(&c[i])
+		a[i] = make([]int, m)
+		for j := 0; j < m; j++ {
+			fmt.Scan(&a[i][j])
+		}
 		inf += c[i]
 	}
 	inf++
 
-	d = make([]int, n)
-	ret := dfs(0)
-	if ret == inf {
-		ret = -1
+	l := 1 << n
+	ans := inf
+	for i := 0; i <= l; i++ {
+		cost := 0
+		s := make([]int, m)
+		for j := 0; j < n; j++ {
+			if (i>>j)&1 == 1 {
+				cost += c[j]
+				for k := 0; k < m; k++ {
+					s[k] += a[j][k]
+				}
+			}
+		}
+
+		for k := 0; k < m; k++ {
+			if s[k] < x {
+				cost = inf
+			}
+		}
+		if ans > cost {
+			ans = cost
+		}
 	}
-	fmt.Println(ret)
+
+	if ans == inf {
+		ans = -1
+	}
+	fmt.Println(ans)
 }
