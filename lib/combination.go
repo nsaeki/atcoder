@@ -3,7 +3,7 @@ type Combination struct {
 	f *Factorial
 }
 
-func NewCombination(n, m int) *Combination {
+func NewCombination(n int, m int64) *Combination {
 	f := NewFactorial(n, m)
 	return &Combination{n, f}
 }
@@ -26,8 +26,8 @@ type Factorial struct {
 	F, Inv []int64
 }
 
-func NewFactorial(n, m int) *Factorial {
-	f := Factorial{n, int64(m), nil, nil}
+func NewFactorial(n int, m int64) *Factorial {
+	f := Factorial{n, m, nil, nil}
 	f.F = make([]int64, n+1)
 	f.Inv = make([]int64, n+1)
 	f.F[0] = 1
