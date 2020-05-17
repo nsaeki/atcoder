@@ -211,7 +211,11 @@ class TestCaseGenerator
     end
     Dir.new(indir).sort.inject([]) do |s, f|
       next s if f.start_with?(".")
-      i, o = [indir, outdir].map { |x| File.join(x, f) }
+      i = File.join(indir, f)
+      o = File.join(outdir, f)
+      if f.end_with?(".in")
+        o.sub!(/\.in$/, '.out')
+      end
       s << (File.exist?(o) ? TestCase.new(i, o) : TestCase.new(i))
     end
   end
