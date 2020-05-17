@@ -14,13 +14,13 @@ func NewBIT(n int, a ...int) *BIT {
 	return &b
 }
 
-func (b BIT) add(i, x int) {
+func (b BIT) Add(i, x int) {
 	for i++; i <= b.n; i += i & -i {
 		b.d[i] += x
 	}
 }
 
-func (b BIT) sum(i int) int {
+func (b BIT) Sum(i int) int {
 	x := 0
 	for i++; i > 0; i -= i & -i {
 		x += b.d[i]

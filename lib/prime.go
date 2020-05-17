@@ -33,7 +33,7 @@ func (s *Sieve) Primes() []int {
 	return ret
 }
 
-func (s *Sieve) factors(n int) map[int]int {
+func (s *Sieve) Factors(n int) map[int]int {
 	ret := make(map[int]int)
 	for n > 1 {
 		ret[s.p[n]]++
