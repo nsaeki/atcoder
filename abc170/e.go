@@ -8,6 +8,24 @@ import (
 	rbt "github.com/emirpasic/gods/trees/redblacktree"
 )
 
+func put(t *rbt.Tree, k interface{}) {
+	if v, e := t.Get(k); e {
+		t.Put(k, v.(int)+1)
+	} else {
+		t.Put(k, 1)
+	}
+}
+
+func remove(t *rbt.Tree, k interface{}) {
+	if v, e := t.Get(k); e {
+		if v.(int) == 1 {
+			t.Remove(k)
+		} else {
+			t.Put(k, v.(int)-1)
+		}
+	}
+}
+
 func main() {
 	r := bufio.NewReader(os.Stdin)
 	w := bufio.NewWriter(os.Stdout)
@@ -23,16 +41,13 @@ func main() {
 	}
 	for i := 0; i < n; i++ {
 		fmt.Fscan(r, &a[i], &b[i])
-		b[i]--
-		t[b[i]].Put(a[i], i)
+		put(t[b[i]], a[i])
 	}
 
-	mi := make([]bool, n)
 	mt := rbt.NewWithIntComparator()
 	for i := 0; i < len(t); i++ {
 		if e := t[i].Right(); e != nil {
-			mi[e.Value.(int)] = true
-			mt.Put(e.Key, e.Value)
+			put(mt, e.Key)
 		}
 	}
 
@@ -40,29 +55,24 @@ func main() {
 		var c, d int
 		fmt.Fscan(r, &c, &d)
 		c--
-		d--
 
 		prev := b[c]
 		if e := t[prev].Right(); e != nil {
-			mi[e.Value.(int)] = false
-			mt.Remove(e.Key)
+			remove(mt, e.Key)
 		}
 		if e := t[d].Right(); e != nil {
-			mi[e.Value.(int)] = false
-			mt.Remove(e.Key)
+			remove(mt, e.Key)
 		}
 
-		t[prev].Remove(a[c])
+		remove(t[prev], a[c])
 		b[c] = d
-		t[d].Put(a[c], c)
+		put(t[d], a[c])
 
 		if e := t[prev].Right(); e != nil {
-			mi[e.Value.(int)] = true
-			mt.Put(e.Key, e.Value)
+			put(mt, e.Key)
 		}
 		if e := t[d].Right(); e != nil {
-			mi[e.Value.(int)] = true
-			mt.Put(e.Key, e.Value)
+			put(mt, e.Key)
 		}
 
 		fmt.Fprintln(w, mt.Left().Key)
