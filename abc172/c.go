@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
 )
 
 func main() {
@@ -25,13 +24,16 @@ func main() {
 		b[i+1] = b[i] + tmp
 	}
 	var ans int
+	j := m
 	for i := 0; i <= n; i++ {
 		if a[i] > k {
-			continue
+			break
 		}
-		j := sort.Search(len(b), func(j int) bool { return a[i]+b[j] > k })
-		if i+j-1 > ans {
-			ans = i + j - 1
+		for a[i]+b[j] > k {
+			j--
+		}
+		if i+j > ans {
+			ans = i + j
 		}
 	}
 	fmt.Println(ans)
