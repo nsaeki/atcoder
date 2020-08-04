@@ -9,7 +9,7 @@ func NewBIT(n int, a ...int) *BIT {
 	b.n = n
 	b.d = make([]int, n+1)
 	for i := 0; i < len(a); i++ {
-		b.add(i, a[i])
+		b.Add(i, a[i])
 	}
 	return &b
 }
