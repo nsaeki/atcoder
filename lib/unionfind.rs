@@ -1,12 +1,14 @@
 #[derive(Debug)]
 struct UnionFind {
     root: Vec<usize>,
+    size: Vec<usize>,
 }
 
 impl UnionFind {
     fn new(n: usize) -> Self {
         UnionFind {
-            root: (0..n).map(|i| i).collect(),
+            root: (0..n).collect(),
+            size: vec![1; n],
         }
     }
 
@@ -16,7 +18,11 @@ impl UnionFind {
         if x == y {
             return;
         }
-        self.root[x] = y;
+        if self.size[x] > self.size[y] {
+            std::mem::swap(&mut x, &mut y);
+        }
+        self.size[x] += self.size[y];
+        self.root[y] = x;
     }
 
     fn root(&mut self, x: usize) -> usize {
@@ -25,6 +31,11 @@ impl UnionFind {
         }
         self.root[x] = self.root(self.root[x]);
         self.root[x]
+    }
+
+    fn size(&mut self, x: usize) -> usize {
+        let r = self.root(x);
+        self.size[r]
     }
 }
 
