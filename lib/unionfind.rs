@@ -4,6 +4,7 @@ struct UnionFind {
     size: Vec<usize>,
 }
 
+#[allow(dead_code)]
 impl UnionFind {
     fn new(n: usize) -> Self {
         UnionFind {
