@@ -1,3 +1,5 @@
+package lib
+
 func gcd(a, b int) int {
 	for a != 0 {
 		a, b = b%a, a

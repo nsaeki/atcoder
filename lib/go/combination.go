@@ -1,3 +1,5 @@
+package lib
+
 type Combination struct {
 	n int
 	f *Factorial
@@ -13,7 +15,7 @@ func (c *Combination) Combination(n, k int) int64 {
 }
 
 func (c *Combination) Permutation(n, k int) int64 {
-        return c.Combination(n, k) * c.f.F[k] % c.f.Mod
+	return c.Combination(n, k) * c.f.F[k] % c.f.Mod
 }
 
 func (c *Combination) Factorial(n int) int64 {

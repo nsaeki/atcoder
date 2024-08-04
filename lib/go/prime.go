@@ -1,4 +1,6 @@
 // Sieve of Eratosthenes
+package lib
+
 type Sieve struct {
 	n int
 	p []int

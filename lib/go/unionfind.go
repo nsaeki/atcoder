@@ -1,3 +1,5 @@
+package lib
+
 type UnionFind struct {
 	root []int
 	size []int

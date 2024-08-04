@@ -1,4 +1,6 @@
 // ZArray contains max length of prefix for s[0:n] and s[i:n]
+package lib
+
 func ZArray(s string) []int {
 	n := len(s)
 	z := make([]int, n)

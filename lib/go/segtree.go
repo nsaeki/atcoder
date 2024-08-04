@@ -1,3 +1,5 @@
+package lib
+
 // Segment Trees
 type SegmentTree struct {
 	n int

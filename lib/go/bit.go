@@ -1,4 +1,7 @@
 // BIT (A Binary indexed tree or Fenwick tree)
+
+package lib
+
 type BIT struct {
 	n int
 	d []int
