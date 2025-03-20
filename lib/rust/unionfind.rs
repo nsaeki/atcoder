@@ -22,8 +22,8 @@ impl UnionFind {
         if self.size[x] > self.size[y] {
             std::mem::swap(&mut x, &mut y);
         }
-        self.size[x] += self.size[y];
-        self.root[y] = x;
+        self.size[y] += self.size[x];
+        self.root[x] = y;
     }
 
     fn root(&mut self, x: usize) -> usize {
@@ -39,4 +39,3 @@ impl UnionFind {
         self.size[r]
     }
 }
-

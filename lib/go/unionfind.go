@@ -35,8 +35,8 @@ func (u UnionFind) Unite(x, y int) {
 	if u.size[x] > u.size[y] {
 		x, y = y, x
 	}
-	u.size[x] += u.size[y]
-	u.root[y] = x
+	u.size[y] += u.size[x]
+	u.root[x] = y
 }
 
 func (u UnionFind) Size(x int) int {
