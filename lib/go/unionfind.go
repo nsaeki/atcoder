@@ -14,7 +14,7 @@ func NewUnionFind(x int) *UnionFind {
 	return &u
 }
 
-func (u UnionFind) Root(x int) int {
+func (u *UnionFind) Root(x int) int {
 	if u.root[x] == x {
 		return x
 	}
@@ -22,11 +22,11 @@ func (u UnionFind) Root(x int) int {
 	return u.root[x]
 }
 
-func (u UnionFind) Same(x, y int) bool {
+func (u *UnionFind) Same(x, y int) bool {
 	return u.Root(x) == u.Root(y)
 }
 
-func (u UnionFind) Unite(x, y int) {
+func (u *UnionFind) Unite(x, y int) {
 	x = u.Root(x)
 	y = u.Root(y)
 	if x == y {
@@ -39,6 +39,6 @@ func (u UnionFind) Unite(x, y int) {
 	u.root[x] = y
 }
 
-func (u UnionFind) Size(x int) int {
+func (u *UnionFind) Size(x int) int {
 	return u.size[u.Root(x)]
 }
