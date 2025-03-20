@@ -2,14 +2,14 @@
 
 for OPT in "$@"; do
     case $OPT in
-        -v) VERBOSE=1;;
-        *)
-            if [[ -z "$SOURCE" ]]; then
-                SOURCE=$OPT
-            else
-                TESTCASE="$TESTCASE $OPT"
-            fi
-            ;;
+    -v) VERBOSE=1 ;;
+    *)
+        if [[ -z "$SOURCE" ]]; then
+            SOURCE=$OPT
+        else
+            TESTCASE="$TESTCASE $OPT"
+        fi
+        ;;
     esac
 done
 
@@ -46,14 +46,14 @@ run_testcase() {
         cat $input
         echo -e "\n\nResult:"
     fi
-    ${RUN_FUNC} ${SOURCE} < $input
+    ${RUN_FUNC} ${SOURCE} <$input
 }
 
 # Main
 
 if [[ -n "$TESTCASE" ]]; then
-   for i in $TESTCASE; do
-        run_testcase $i        
+    for i in $TESTCASE; do
+        run_testcase $i
     done
 else
     echo "No test files are found. Waiting input"
