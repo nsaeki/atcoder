@@ -1,13 +1,11 @@
-#[allow(dead_code)]
-struct Combination {
+struct ModBinomial {
     n: usize,
     fact: Vec<i64>,
     inv: Vec<i64>,
     m: i64,
 }
 
-#[allow(dead_code)]
-impl Combination {
+impl ModBinomial {
     fn new(n: usize, m: i64) -> Self {
         let mut fact = vec![1; n + 1];
         for i in 1..=n {
@@ -42,3 +40,38 @@ impl Combination {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn pow() {
+        assert_eq!(ModBinomial::pow(3, 4, 1_000_000_007), 81);
+        assert_eq!(ModBinomial::pow(2, 5, 1_000_000_007), 32);
+        assert_eq!(ModBinomial::pow(3, 4, 7), 4);
+    }
+
+    #[test]
+    fn permutation() {
+        let f = ModBinomial::new(10, 1_000_000_007);
+        assert_eq!(f.permutation(10, 3), 720);
+        assert_eq!(f.permutation(5, 2), 20);
+
+        let f = ModBinomial::new(10, 13);
+        assert_eq!(f.permutation(10, 3), 5);
+        assert_eq!(f.permutation(5, 2), 7);
+    }
+
+    #[test]
+    fn choose() {
+        let f = ModBinomial::new(10, 1_000_000_007);
+        assert_eq!(f.choose(10, 3), 120);
+        assert_eq!(f.choose(5, 2), 10);
+
+        let f = ModBinomial::new(10, 13);
+        assert_eq!(f.choose(10, 3), 3);
+        assert_eq!(f.choose(5, 2), 10);
+    }
+}
+
