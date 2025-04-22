@@ -1,3 +1,16 @@
+fn mod_pow(mut x: i64, mut exp: i64, m: i64) -> i64 {
+    let mut res = 1;
+    x %= m;
+    while exp > 0 {
+        if exp & 1 == 1 {
+            res = res * x % m;
+        }
+        x = x * x % m;
+        exp >>= 1;
+    }
+    res
+}
+
 struct ModBinomial {
     n: usize,
     fact: Vec<i64>,
@@ -12,7 +25,7 @@ impl ModBinomial {
             fact[i] = fact[i - 1] * i as i64 % m;
         }
         let mut inv = vec![0; n + 1];
-        inv[n] = Self::pow(fact[n], m - 2, m);
+        inv[n] = mod_pow(fact[n], m - 2, m);
         for i in (1..=n).rev() {
             inv[i - 1] = inv[i] * i as i64 % m;
         }
@@ -27,18 +40,6 @@ impl ModBinomial {
     fn choose(&self, n: usize, k: usize) -> i64 {
         self.fact[n] * self.inv[k] % self.m * self.inv[n - k] % self.m
     }
-
-    fn pow(x: i64, exp: i64, m: i64) -> i64 {
-        if exp == 0 {
-            return 1;
-        }
-        let r = Self::pow(x, exp / 2, m);
-        if exp & 1 == 0 {
-            r * r % m
-        } else {
-            r * r % m * x % m
-        }
-    }
 }
 
 #[cfg(test)]
@@ -47,9 +48,9 @@ mod test {
 
     #[test]
     fn pow() {
-        assert_eq!(ModBinomial::pow(3, 4, 1_000_000_007), 81);
-        assert_eq!(ModBinomial::pow(2, 5, 1_000_000_007), 32);
-        assert_eq!(ModBinomial::pow(3, 4, 7), 4);
+        assert_eq!(mod_pow(3, 4, 1_000_000_007), 81);
+        assert_eq!(mod_pow(2, 5, 1_000_000_007), 32);
+        assert_eq!(mod_pow(3, 4, 7), 4);
     }
 
     #[test]
@@ -74,4 +75,3 @@ mod test {
         assert_eq!(f.choose(5, 2), 10);
     }
 }
-
