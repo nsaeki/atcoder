@@ -1,17 +1,15 @@
+const ALPHABET_SIZE: usize = 26;
+const BASE: u8 = b'a';
+
 struct TrieNode {
-    children: Vec<Option<TrieNode>>,
+    children: [Option<Box<TrieNode>>; ALPHABET_SIZE],
     term: bool,
 }
 
 impl TrieNode {
     fn new() -> Self {
-        let mut children = Vec::new();
-        for _ in 0..26 {
-            children.push(None);
-        }
-
-        TrieNode {
-            children,
+        Self {
+            children: std::array::from_fn(|_| None),
             term: false,
         }
     }
@@ -31,11 +29,8 @@ impl Trie {
     fn register(&mut self, word: &str) {
         let mut node = &mut self.root;
         for c in word.bytes() {
-            let index = (c - b'a') as usize;
-            if node.children[index].is_none() {
-                node.children[index] = Some(TrieNode::new());
-            }
-            node = node.children[index].as_mut().unwrap();
+            let index = (c - BASE) as usize;
+            node = node.children[index].get_or_insert_with(|| Box::new(TrieNode::new()));
         }
         node.term = true;
     }
@@ -43,22 +38,21 @@ impl Trie {
     fn search(&self, word: &str) -> bool {
         let mut node = &self.root;
         for c in word.bytes() {
-            let index = (c - b'a') as usize;
+            let index = (c - BASE) as usize;
             if let Some(next) = node.children[index].as_ref() {
                 node = next;
             } else {
                 return false;
             }
         }
-        node.term == true
+        node.term
     }
 }
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn can_search_word() {
         let mut trie = Trie::new();
@@ -66,7 +60,6 @@ mod tests {
         assert!(trie.search("test"));
     }
 
-    
     #[test]
     fn can_search_same_prefix_words() {
         let mut trie = Trie::new();
@@ -74,7 +67,7 @@ mod tests {
         trie.register("tests");
         assert!(trie.search("test"));
     }
-    
+
     #[test]
     fn search_fails_non_registered_word() {
         let mut trie = Trie::new();
