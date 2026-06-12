@@ -11,34 +11,40 @@ fn mod_pow(mut x: i64, mut exp: i64, m: i64) -> i64 {
     res
 }
 
-struct ModBinomial {
+struct Combination {
     n: usize,
     fact: Vec<i64>,
-    inv: Vec<i64>,
+    ifact: Vec<i64>,
     m: i64,
 }
 
-impl ModBinomial {
+impl Combination {
     fn new(n: usize, m: i64) -> Self {
         let mut fact = vec![1; n + 1];
         for i in 1..=n {
             fact[i] = fact[i - 1] * i as i64 % m;
         }
-        let mut inv = vec![0; n + 1];
-        inv[n] = mod_pow(fact[n], m - 2, m);
+        let mut ifact = vec![0; n + 1];
+        ifact[n] = mod_pow(fact[n], m - 2, m);
         for i in (1..=n).rev() {
-            inv[i - 1] = inv[i] * i as i64 % m;
+            ifact[i - 1] = ifact[i] * i as i64 % m;
         }
 
-        Self { n, fact, inv, m }
+        Self { n, fact, ifact, m }
     }
 
     fn permutation(&self, n: usize, k: usize) -> i64 {
-        self.fact[n] * self.inv[n - k] % self.m
+        if k > n {
+            return 0;
+        }
+        self.fact[n] * self.ifact[n - k] % self.m
     }
 
     fn choose(&self, n: usize, k: usize) -> i64 {
-        self.fact[n] * self.inv[k] % self.m * self.inv[n - k] % self.m
+        if k > n {
+            return 0;
+        }
+        self.fact[n] * self.ifact[k] % self.m * self.ifact[n - k] % self.m
     }
 }
 
@@ -55,22 +61,22 @@ mod test {
 
     #[test]
     fn permutation() {
-        let f = ModBinomial::new(10, 1_000_000_007);
+        let f = Combination::new(10, 1_000_000_007);
         assert_eq!(f.permutation(10, 3), 720);
         assert_eq!(f.permutation(5, 2), 20);
 
-        let f = ModBinomial::new(10, 13);
+        let f = Combination::new(10, 13);
         assert_eq!(f.permutation(10, 3), 5);
         assert_eq!(f.permutation(5, 2), 7);
     }
 
     #[test]
     fn choose() {
-        let f = ModBinomial::new(10, 1_000_000_007);
+        let f = Combination::new(10, 1_000_000_007);
         assert_eq!(f.choose(10, 3), 120);
         assert_eq!(f.choose(5, 2), 10);
 
-        let f = ModBinomial::new(10, 13);
+        let f = Combination::new(10, 13);
         assert_eq!(f.choose(10, 3), 3);
         assert_eq!(f.choose(5, 2), 10);
     }
