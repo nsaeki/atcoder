@@ -13,25 +13,27 @@ impl UnionFind {
         }
     }
 
-    fn unite(&mut self, mut x: usize, mut y: usize) {
+    fn union(&mut self, mut x: usize, mut y: usize) -> bool {
         x = self.root(x);
         y = self.root(y);
         if x == y {
-            return;
+            return false;
         }
-        if self.size[x] > self.size[y] {
+        if self.size[x] < self.size[y] {
             std::mem::swap(&mut x, &mut y);
         }
-        self.size[y] += self.size[x];
-        self.root[x] = y;
+        self.root[y] = x;
+        self.size[x] += self.size[y];
+        true
     }
 
     fn root(&mut self, x: usize) -> usize {
         if self.root[x] == x {
-            return x;
+            x
+        } else {
+            self.root[x] = self.root(self.root[x]);
+            self.root[x]
         }
-        self.root[x] = self.root(self.root[x]);
-        self.root[x]
     }
 
     fn size(&mut self, x: usize) -> usize {
