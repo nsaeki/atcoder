@@ -2,3 +2,8 @@ a.out
 *.bak
 tmp*
 past*
+
+
+# Added by cargo
+
+/target
